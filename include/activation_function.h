@@ -41,7 +41,7 @@ public:
 class identity : public function {
 public:
     float_t f(float_t x) const { return x; }
-    float_t df(float_t /*f_x*/) const { return 1; }  
+    float_t df(float_t f_x) const { return 1; }  
     std::pair<float_t, float_t> scale() const { return std::make_pair(0.1, 0.9); }
 };
 

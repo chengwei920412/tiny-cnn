@@ -86,6 +86,27 @@ struct result {
     std::map<label_t, std::map<label_t, int> > confusion_matrix;
 };
 
+struct r_result {
+    r_result() : loss(0), num_total(0) {}
+    
+    double avg_loss() const {
+        return loss;
+    }
+    
+    template <typename Char, typename CharTraits>
+    void print_summary(std::basic_ostream<Char, CharTraits>& os) const {
+        os << "average loss:" << loss/num_total << std::endl;
+    }
+
+    template <typename Char, typename CharTraits>
+    void print_detail(std::basic_ostream<Char, CharTraits>& os) {
+        print_summary(os);
+    }
+    
+    float_t loss;
+    int num_total;
+};
+
 enum grad_check_mode {
     GRAD_CHECK_ALL, ///< check all elements of weights
     GRAD_CHECK_FIRST, ///< check first element of weights
@@ -123,6 +144,9 @@ public:
 
     void predict(const vec_t& in, vec_t *out) {
         *out = forward_propagation(in);
+        
+//        for (int i = 0; i < out->size(); i++) 
+//            assert((*out)[i] == (*out)[i]);
     }
 
     /**
@@ -155,6 +179,12 @@ public:
         train(in, t, batch_size, epoch, nop, nop);
     }
 
+    /**
+     * test conv-net
+     * 
+     * @param in                array of input data
+     * @param t                 array of signals (labels)
+     */
     result test(const std::vector<vec_t>& in, const std::vector<label_t>& t) {
         result test_result;
 
@@ -172,6 +202,24 @@ public:
         return test_result;
     }
 
+    /**
+     * test conv-net on vector signals
+     * 
+     * @param in                array of input data
+     * @param t                 array of signals (vectors)
+     */
+    r_result test(const std::vector<vec_t>& in, const std::vector<vec_t>& t) {
+        r_result test_result;
+        
+        for (size_t i = 0; i < in.size(); i++) {
+            vec_t out;
+            predict(in[i], &out);
+            
+            test_result.loss += get_loss(out, t[i]);
+            test_result.num_total++;
+        }
+        return test_result;
+    }
 
     bool gradient_check(const vec_t* in, const label_t* t, int data_size, float_t eps, grad_check_mode mode = GRAD_CHECK_FIRST) {
         assert(!layers_.empty());
@@ -303,10 +351,10 @@ private:
         float_t e = 0.0;
 
         assert(dim == (int)t.size());
-
+        
         for (int i = 0; i < dim; i++)
             e += E_.f(out[i], t[i]);
-
+        
         return e;
     }
 

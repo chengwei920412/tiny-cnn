@@ -1,143 +1,114 @@
-tiny-cnn: A C++11 implementation of deep learning (convolutional neural networks)
-========
+# Tiny CNN: A C++11 Convolutional Neural Network Library
 
-tiny-cnn is a C++11 implementation of deep learning (convolutional neural networks). 
+This is a fork of [nyanp/tiny-cnn](https://github.com/nyanp/tiny-cnn). Minor modifications are planned and [CMake](http://www.cmake.org/) is used for building.
 
-design principle
------
-- fast, without GPU
-    - with TBB threading and SSE/AVX vectorization
-    - 98.8% accuracy on MNIST in 13 minutes training (@Core i7-3520M)
-- header only, policy-based design
-- small dependency & simple implementation
+## Index
 
-supported networks
------
-### layer-types
-* fully-connected layer
-* fully-connected layer (with dropout)
-* convolutional layer
-* average pooling layer
+* [Design Principles](#desing-principles)
+* [Supported Networks](#supported-networks)
+    * [Layer Types](#layer-types)
+    * [Activation Functions](#activation-functions)
+    * [Loss Functions](#loss-functions)
+    * [Optimization Algorithms](#optimization-algorithms)
+* [Dependencies](#dependencies)
+* [Building](#building)
+* [Examples](#examples)
+* [Useful References](#useful-references)
+* [License](#license)
 
-### activation functions
-* tanh
-* sigmoid
-* rectified linear
-* identity
+## Design Principle
 
-### loss functions
-* cross-entropy
-* mean-squared-error
+* Fast - without GPU
+    * TBB threading and SSE/AVX vectorization
+    * 98.8% accuracy on MNIST [2] in 13 minutes training (@Core i7-3520M)
+* Header only, policy-based design
+* Small dependency & simple implementation
 
-### optimization algorithm
-* stochastic gradient descent (with/without L2 normalization)
-* stochastic gradient levenberg marquardt
+## Supported Networks
 
-dependencies
------
-* boost C++ library
-* Intel TBB
+### Layer Types
 
-sample code
-------
+* Fully-connected layer
+* Fully-connected layer with dropout [1]
+* Convolutional layer
+* Average pooling layer
 
-construct convolutional neural networks
+    [1] G. E. Hinton, N. Srivastava, A. Krizhevsky, I. Sutskever, R. Salakhutdinov.
+        Improving neural networks by preventing co-adaptation of feature detectors.
+        Computing Research Repository, abs/1207.0580, 2012.
 
-```cpp
-#include "tiny_cnn.h"
-using namespace tiny_cnn;
-using namespace tiny_cnn::activation;
+### Activation Functions
 
-void cunstruct_cnn() {
-    using namespace tiny_cnn;
+* Hyperbolic tangent
+* Sigmoid
+* Rectified linear
+* Identity
 
-    // specify loss-function and optimization-algorithm
-    typedef network<mse, gradient_descent> CNN;
-    CNN mynet;
+### Loss Functions
 
-    // tanh, 32x32 input, 5x5 window, 1-6 feature-maps convolution
-    convolutional_layer<CNN, tan_h> C1(32, 32, 5, 1, 6);
+* Cross-entropy
+* Mean-squared-error
 
-    // tanh, 28x28 input, 6 feature-maps, 2x2 subsampling
-    average_pooling_layer<CNN, tan_h> S2(28, 28, 6, 2);
+### Optimization Algorithms
 
-    // fully-connected layers
-    fully_connected_layer<CNN, sigmoid> F3(14 * 14 * 6, 120);
-    fully_connected_layer<CNN, identity> F4(120, 10);
+* Stochastic gradient descent (with/without L2 normalization)
+* Stochastic gradient Levenberg-Marquardt
 
-    // connect all
-    mynet.add(&C1); mynet.add(&S2); mynet.add(&F3); mynet.add(&F4);
+## Dependencies
 
-    assert(mynet.in_dim() == 32 * 32);
-    assert(mynet.out_dim() == 10);
-}
-```
-construct multi-layer perceptron(mlp)
+* [Boost](http://www.boost.org/)
+* [Intel TBB](https://www.threadingbuildingblocks.org/)
 
-```cpp
-#include "tiny_cnn.h"
-using namespace tiny_cnn;
-using namespace tiny_cnn::activation;
+## Building
 
-void cunstruct_mlp() {
-    typedef network<mse, gradient_descent> MLP;
-    MLP mynet;
+This fork of Tiny CNN is built using CMake (tested on Ubuntu 14.04):
 
-    fully_connected_layer<MLP, sigmoid> F1(32 * 32, 300);
-    fully_connected_layer<MLP, identity> F2(300, 10);
+    $ sudo apt-get install build/essential
+    $ sudo apt-get install cmake
+    $ sudo apt-get install libboost-all-dev
+    $ sudo apt-get install libtbb-dev
+    $ git clone https://github.com/davidstutz/tiny-cnn
+    $ cd tiny-cnn
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
 
-    mynet.add(&F1); mynet.add(&F2);
+Adapt `config.h` for using TBB, SSE or AV.
 
-    assert(mynet.in_dim() == 32 * 32);
-    assert(mynet.out_dim() == 10);
-}
-```
+**Note:** Depending on your installation of Boost and TBB, you may need to adapt `cmake/FindTBB.cmake` and `CMakeLists.txt`!
 
-another way to construct mlp
+## Examples
 
-```cpp
-#include "tiny_cnn.h"
-using namespace tiny_cnn;
-using namespace tiny_cnn::activation;
+Examples can be found in `src/main.cpp`. The MNIST [2] dataset is available online at [http://yann.lecun.com/exdb/mnist/](http://yann.lecun.com/exdb/mnist/).
 
-void cunstruct_mlp() {
-    auto mynet = make_mlp<mse, gradient_descent, tan_h>({ 32 * 32, 300, 10 });
+    [2] Y. LeCun, L. Bottou, Y. Bengio, P. Haffner.
+        Gradient-based learning applied to document recognition.
+        Proceedings of the IEEE, 86(11):2278-2324, November 1998.
 
-    assert(mynet.in_dim() == 32 * 32);
-    assert(mynet.out_dim() == 10);
-}
-```
+## Useful References
 
-more sample, read main.cpp
+Some useful references with working with (deep) convolutional neural networks. Further references can also be found on [davidstutz.de/neural-networks-reading-list](http://davidstutz.de/neural-networks-reading-list/) and [deeplearning.net]
+(http://deeplearning.net/).
+    [3] Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, L. D. Jackel.
+        Backpropagation applied to handwritten zip code recognition.
+        Neural Computation, 1(4):541–551, 1989.
+    [4] C. Bishop.
+        Pattern Recognition and Machine Learning.
+        Springer Verlag, New York, 2006.
+    [5] Y. Bengio.
+        Learning deep architectures for AI.
+        Foundations and Trends in Machine Learning, (1):1–127, 2009.
+    [6] K. Jarrett, K. Kavukcuogl, M. Ranzato, Y. LeCun.
+        What is the best multi-stage architecture for object recognition?
+        In Computer Vision, International Conference on, pages 2146–2153, 2009.
+    [7] Y. LeCun, K. Kavukvuoglu, C. Farabet.
+        Convolutional networks and applications in vision.
+        In Circuits and Systems, International Symposium on, pages 253–256, 2010.
+    [8] A. Krizhevsky, I. Sutskever, and G. E. Hinton.
+        ImageNet classification with deep convolutional neural networks.
+        In Advances in Neural Information Processing Systems, pages 1097–1105, 2012
 
-build sample program
-------
-### gcc(4.6~)
-without tbb
+## license
 
-    ./waf configure --BOOST_ROOT=your-boost-root
-    ./waf build
-
-with tbb
-
-    ./waf configure --TBB --TBB_ROOT=your-tbb-root --BOOST_ROOT=your-boost-root
-    ./waf build
-
-with tbb and SSE/AVX
-
-    ./waf configure --AVX --TBB --TBB_ROOT=your-tbb-root --BOOST_ROOT=your-boost-root
-    ./waf build
-
-
-    ./waf configure --SSE --TBB --TBB_ROOT=your-tbb-root --BOOST_ROOT=your-boost-root
-    ./waf build
-
-
-or edit include/config.h to customize default behavior.
-
-### vc(2012~)
-open vc/tiny_cnn.sln and build in release mode.
-
-license
-------
-The BSD 3-Clause License
+The BSD 3-Clause License, see [nyanp/tiny-cnn](https://github.com/nyanp/tiny-cnn).
