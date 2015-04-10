@@ -90,6 +90,7 @@ Examples can be found in `src/main.cpp`. The MNIST [2] dataset is available onli
 
 Some useful references with working with (deep) convolutional neural networks. Further references can also be found on [davidstutz.de/neural-networks-reading-list](http://davidstutz.de/neural-networks-reading-list/) and [deeplearning.net]
 (http://deeplearning.net/).
+
     [3] Y. LeCun, B. Boser, J. S. Denker, D. Henderson, R. E. Howard, W. Hubbard, L. D. Jackel.
         Backpropagation applied to handwritten zip code recognition.
         Neural Computation, 1(4):541–551, 1989.

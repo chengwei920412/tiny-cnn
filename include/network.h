@@ -90,7 +90,7 @@ struct r_result {
     r_result() : loss(0), num_total(0) {}
     
     double avg_loss() const {
-        return loss;
+        return loss/num_total;
     }
     
     template <typename Char, typename CharTraits>
@@ -144,9 +144,6 @@ public:
 
     void predict(const vec_t& in, vec_t *out) {
         *out = forward_propagation(in);
-        
-//        for (int i = 0; i < out->size(); i++) 
-//            assert((*out)[i] == (*out)[i]);
     }
 
     /**
@@ -351,10 +348,10 @@ private:
         float_t e = 0.0;
 
         assert(dim == (int)t.size());
-        
+
         for (int i = 0; i < dim; i++)
             e += E_.f(out[i], t[i]);
-        
+
         return e;
     }
 
